@@ -8,7 +8,11 @@ require_once "resources/require.php";
 require_once "resources/check_auth.php";
 require_once "resources/header.php";
 
-// TODO: permission check
+if(!(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all'))) {
+    echo "permission denied";
+    require_once "resources/footer.php";
+    exit;
+}
 
 if($_POST['extension_uuid']) { // add/update
     $sql = "update linphone_devices set extension_uuid = :extension_uuid, name = :name where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
@@ -54,9 +58,12 @@ if($device) {
 echo "<div class='action_bar' id='action_bar'>\n";
 echo "	<div class='heading'><b>Edit Linphone Device</b></div>\n";
 echo "	<div class='actions'>\n";
+echo button::create(['type'=>'button','label'=>"back",'icon'=>$_SESSION['theme']['button_icon_back'],'id'=>'btn_back','style'=>'margin-right: 15px;','link'=>'index.php']);
 echo button::create(['type'=>'submit','label'=>"save", 'icon'=>$_SESSION['theme']['button_icon_save'],'id'=>'btn_save','style'=>'margin-left: 15px;']);
 if($device) {
-    echo button::create(['type'=>'button','label'=>$text['button-qr_code'],'icon'=>'qrcode','collapse'=>'hide-sm-dn','onclick'=>"$('#qr_code_container').fadeIn(400);"]);
+    $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret'];
+    echo button::create(['type'=>'button','label'=>"Show Provisioning QR",'icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
+    echo button::create(['type'=>'button','label'=>"Copy Provisioning URL",'icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
 }
 echo "  </div>";
 echo "	<div style='clear: both;'></div>\n";
@@ -84,7 +91,7 @@ echo "<br /><br />\n";
 
                 $name = $extension['effective_caller_id_name'];
                 if($name != "") {
-                    $name = "(".$name.")";
+                    $name = " (".$name.")";
                 }
 
                 echo "<option value=\"".$extension['extension_uuid']."\"".$selected.">".$extension['extension'].$name."</option>\n";
@@ -95,30 +102,36 @@ echo "<br /><br />\n";
 
 
 </table>
-<?php
-if($device) {
-    $qr_mode = '4';
-    $qr_size = '0.2';
-    echo "<script src='".PROJECT_PATH."/resources/jquery/jquery-qrcode.min.js'></script>";
-    echo "<script type='text/javascript'>";
-    echo "	$(document).ready(function() {";
-    echo "		$('#qr_code').qrcode({ ";
-    echo "			render: 'canvas', ";
-    echo "			minVersion: 6, ";
-    echo "			maxVersion: 40, ";
-    echo "			ecLevel: 'H', ";
-    echo "			size: 650, ";
-    echo "			radius: 0.2, ";
-    echo "			quiet: 6, ";
-    echo "			background: '#fff', ";
-    echo "			mode: ".$qr_mode.", ";
-    echo "			mSize: ".$qr_size.", ";
-    echo "			mPosX: 0.5, ";
-    echo "			mPosY: 0.5, ";
-    echo "			text: \"https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret']."\"";
-    echo "			".$qr_option;
-    echo "		});";
-    echo "	});";
-    echo "</script>";
+
+<script src="<?php echo $PROJECT_PATH; ?>/resources/jquery/jquery-qrcode.min.js"></script>
+<script type="text/javascript">
+function show_qr(url) {
+    $('#qr_code').empty().qrcode({
+        render: 'canvas',
+        minVersion: 6,
+        maxVersion: 40,
+        ecLevel: 'H',
+        size: 650,
+        radius: 0.2,
+        quiet: 6,
+        background: '#fff',
+        mode: 4,
+        mSize: 0.2,
+        mPosX: 0.5,
+        mPosY: 0.5,
+        text: url,
+    });
+
+    $('#qr_code_container').fadeIn(400);
 }
+
+function copy(data) {
+    navigator.clipboard.writeText(data).then(() => {
+        // TODO: positive feedback
+    }).catch((e) => {
+        // TODO: negative feedback
+    });
+}
+</script>
+<?php
 require_once "resources/footer.php";

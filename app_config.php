@@ -1,6 +1,6 @@
 <?php
 	//application details
-		$apps[$x]['name'] = "Belledonne Communications";
+		$apps[$x]['name'] = "Linphone";
 		$apps[$x]['uuid'] = "873ee273-e675-4a41-9fc6-3653ce97e9e7";
 		$apps[$x]['category'] = "Vendor";
 		$apps[$x]['subcategory'] = "";
@@ -53,16 +53,16 @@
 		$z++;
 
 		$apps[$x]['db'][$y]['fields'][$z]['name']['text'] = 'name';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'varchar';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'varchar';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
 		$apps[$x]['db'][$y]['fields'][$z]['description'] = 'name of the linphone device';
 		$z++;
 
 		$apps[$x]['db'][$y]['fields'][$z]['name']['text'] = 'provisioning_secret';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'varchar(20)';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
-		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(20)';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
 		$apps[$x]['db'][$y]['fields'][$z]['description'] = 'secret for provisioning';
 		$z++;
 
@@ -84,5 +84,24 @@
 		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = "v_extensions";
 		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = "extension_uuid";
 		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "user_agent";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = "foreign";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = "v_extensions";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = "extension_uuid";
+		$z++;
+
+		$y=0;
+		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_domain";
+		$apps[$x]['permissions'][$y]['groups'][] = "admin";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$y++;
+
+		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_all";
+		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
+		$y++;
 
 ?>

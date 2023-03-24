@@ -3,9 +3,7 @@ if(strpos($_SERVER['HTTP_USER_AGENT'], "Linphone") !== false) {
 	include "template.php";
 	die();
 }
-
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html>
 <body>
 	<h2>Hello, this page will help you setup Accelerate Networks Mobile, so you can answer calls on the go!</h2>
