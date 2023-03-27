@@ -74,37 +74,5 @@ foreach($devices as $device) {
 </tr>
 <?php } ?>
 </table>
-
-<?php echo "<script src='".PROJECT_PATH."/resources/jquery/jquery-qrcode.min.js'></script>"; ?>
-<script type="text/javascript">
-function show_qr(url) {
-    $('#qr_code').empty().qrcode({
-        render: 'canvas',
-        minVersion: 6,
-        maxVersion: 40,
-        ecLevel: 'H',
-        size: 650,
-        radius: 0.2,
-        quiet: 6,
-        background: '#fff',
-        mode: 4,
-        mSize: 0.2,
-        mPosX: 0.5,
-        mPosY: 0.5,
-        text: url,
-    });
-
-    $('#qr_code_container').fadeIn(400);
-}
-
-function copy(data) {
-    navigator.clipboard.writeText(data).then(() => {
-        // TODO: positive feedback
-    }).catch((e) => {
-        // TODO: negative feedback
-    });
-}
-</script>
 <?php
-
-require_once "resources/footer.php";
+require('footer.php');

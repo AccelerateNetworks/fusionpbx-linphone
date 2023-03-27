@@ -72,66 +72,33 @@ echo "<br /><br />\n";
 
 ?>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
-<tr>
-    <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name</td>
-    <td width="70%" class="vtable" align="left">
-        <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
-        leave blank to autofill with device hostname
-    </td>
-</tr>
-<tr>
-    <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Extension</td>
-    <td width="70%" class="vtable" align="left">
-        <select class="formfld" name="extension_uuid">
-            <?php foreach($extensions as $extension) {
-                $selected = "";
-                if($extension['extension_uuid'] == $device['extension_uuid']) {
-                    $selected=" selected";
-                }
+    <tr>
+        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name</td>
+        <td width="70%" class="vtable" align="left">
+            <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
+            leave blank to autofill with device hostname
+        </td>
+    </tr>
+    <tr>
+        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Extension</td>
+        <td width="70%" class="vtable" align="left">
+            <select class="formfld" name="extension_uuid">
+                <?php foreach($extensions as $extension) {
+                    $selected = "";
+                    if($extension['extension_uuid'] == $device['extension_uuid']) {
+                        $selected=" selected";
+                    }
 
-                $name = $extension['effective_caller_id_name'];
-                if($name != "") {
-                    $name = " (".$name.")";
-                }
+                    $name = $extension['effective_caller_id_name'];
+                    if($name != "") {
+                        $name = " (".$name.")";
+                    }
 
-                echo "<option value=\"".$extension['extension_uuid']."\"".$selected.">".$extension['extension'].$name."</option>\n";
-             } ?>
-        </select>
-    </td>
-</tr>
-
-
+                    echo "<option value=\"".$extension['extension_uuid']."\"".$selected.">".$extension['extension'].$name."</option>\n";
+                } ?>
+            </select>
+        </td>
+    </tr>
 </table>
-
-<script src="<?php echo $PROJECT_PATH; ?>/resources/jquery/jquery-qrcode.min.js"></script>
-<script type="text/javascript">
-function show_qr(url) {
-    $('#qr_code').empty().qrcode({
-        render: 'canvas',
-        minVersion: 6,
-        maxVersion: 40,
-        ecLevel: 'H',
-        size: 650,
-        radius: 0.2,
-        quiet: 6,
-        background: '#fff',
-        mode: 4,
-        mSize: 0.2,
-        mPosX: 0.5,
-        mPosY: 0.5,
-        text: url,
-    });
-
-    $('#qr_code_container').fadeIn(400);
-}
-
-function copy(data) {
-    navigator.clipboard.writeText(data).then(() => {
-        // TODO: positive feedback
-    }).catch((e) => {
-        // TODO: negative feedback
-    });
-}
-</script>
 <?php
-require_once "resources/footer.php";
+require('footer.php');
