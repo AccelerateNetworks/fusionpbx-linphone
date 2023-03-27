@@ -104,4 +104,7 @@
 		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
 		$y++;
 
+		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_self";
+		$apps[$x]['permissions'][$y]['groups'][] = "user";
+		$y++;
 ?>

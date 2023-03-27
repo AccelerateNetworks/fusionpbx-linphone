@@ -8,18 +8,23 @@ require_once "resources/require.php";
 require_once "resources/check_auth.php";
 require_once "resources/header.php";
 
-if(!(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all'))) {
+$parameters = array();
+$sql = "";
+if(permission_exists('linphone_manage_all') && $_GET['show'] == "all") {
+    $sql = "select linphone_devices.*, v_extensions.extension from linphone_devices, v_extensions where v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid ORDER BY v_extensions.extension";
+} else if(permission_exists('linphone_manage_domain')) {
+    $sql = "select linphone_devices.*, v_extensions.extension from linphone_devices, v_extensions where linphone_devices.domain_uuid = :domain_uuid and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid ORDER BY v_extensions.extension";
+    $parameters['domain_uuid'] = $domain_uuid;
+} else if(permission_exists('linphone_manage_self')) {
+    $sql = "select linphone_devices.*, v_extensions.extension from linphone_devices, v_extensions, v_extension_users where linphone_devices.domain_uuid = :domain_uuid and v_extension_users.user_uuid = :user_uuid and v_extension_users.extension_uuid = v_extensions.extension_uuid and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid ORDER BY v_extensions.extension;";
+    $parameters['domain_uuid'] = $domain_uuid;
+    $parameters['user_uuid'] = $_SESSION['user_uuid'];
+} else {
     echo "permission denied";
     require_once "resources/footer.php";
     exit;
 }
 
-$sql = "select linphone_devices.*, v_extensions.extension from linphone_devices, v_extensions where linphone_devices.domain_uuid = :domain_uuid and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid ORDER BY v_extensions.extension";
-$parameters['domain_uuid'] = $domain_uuid;
-if(permission_exists('linphone_manage_all') && $_GET['show'] == "all") {
-    $sql = "select linphone_devices.*, v_extensions.extension from linphone_devices, v_extensions where v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid ORDER BY v_extensions.extension";
-    unset($parameters['domain_uuid']);
-}
 $database = new database;
 $devices = $database->select($sql, $parameters, 'all');
 unset($parameters);
@@ -60,7 +65,9 @@ foreach($devices as $device) {
         $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret'];
         echo button::create(['type'=>'button','icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
         echo button::create(['type'=>'button','icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
-        echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'device_edit.php?device_uuid='.$device['device_uuid']]);
+        if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
+            echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'device_edit.php?device_uuid='.$device['device_uuid']]);
+        }
     ?></td>
 </tr>
 <?php } ?>
