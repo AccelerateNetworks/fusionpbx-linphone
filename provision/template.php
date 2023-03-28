@@ -4,9 +4,11 @@ require_once "resources/require.php";
 
 // things that we might want configurable eventually
 $sip_transport = "tls";
-$audio_codecs_enabled = array("opus", "G722");
+$audio_codecs_enabled = array("opus", "G722"); // Codec list will be pushed to Linphone Desktop clients
 $audio_codecs_disabled = array("speex", "PCMU", "PCMA", "GSM", "G729", "BV16", "L16"); // do we actually need to list these to disable them?
 $video_codecs_enabled = array("VP8", "H264"); // no disabled list in existing template
+
+$is_mobile = strpos($_SERVER['HTTP_USER_AGENT'], "AN Mobile") !== false; // Detect AN Mobile user agent for slight config differences
 
 $sql = "select v_extensions.*, linphone_devices.user_agent, linphone_devices.device_uuid, linphone_devices.name as device_name from v_extensions, linphone_devices where linphone_devices.provisioning_secret = :token and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid";
 $parameters['token'] = $_GET['token'];
@@ -48,73 +50,72 @@ $database = new database;
 $domain_name = $database->select($sql, $parameters, 'column');
 unset($parameters);
 
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-?>
-<config xmlns="http://www.linphone.org/xsds/lpconfig.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd">
-  <section name="misc">
-    <entry name="transient_provisioning" overwrite="true">0</entry>
-    <entry name="uuid" overwrite="true">317971da-65c4-419f-a0ca-69fe26523e2b</entry>
-    <!--    <entry name="contacts-vcard-list" overwrite="true">downloading contact vcard list doesn't seem to work great yet</entry> -->
-  </section>
-  <section name="sip">
-    <entry name="verify_server_certs" overwrite="true">0</entry>
-    <entry name="verify_server_cn" overwrite="true">0</entry>
-    <entry name="media_encryption" overwrite="true">srtp</entry>
-  </section>
-  <section name="ui">
-    <entry name="exit_on_close" overwrite="true">1</entry>
-    <entry name="logs_enabled" overwrite="true">1</entry>
-  </section>
-<?php
-$codec_num=0;
-foreach($audio_codecs_enabled as $codec) {
-?>
-  <section name="audio_codec_<?php echo $codec_num++; ?>">
-    <entry name="mime" overwrite="true"><?php echo $codec; ?></entry>
-    <entry name="enabled" overwrite="true">1</entry>
-  </section>
-<?php
+$config['misc']['transient_provisioning'] = "0";
+$config['misc']['uuid'] = "317971da-65c4-419f-a0ca-69fe26523e2b";
+$config['misc']['version_check_url_root'] = "https://acceleratenetworks.sip.callpipe.com/app/linphone";
+// $config['misc']['contacts-vcard-list'] = ".." // old vcard download
+
+
+$config['sip']['verify_server_certs'] = "0";
+$config['sip']['verify_server_cn'] = "0";
+$config['sip']['default_proxy'] = "0";
+$config['sip']['media_encryption'] = "srtp";
+
+$config['ui']['exit_on_close'] = "1";
+$config['ui']['logs_enabled'] = "1";
+
+$config['proxy_default_values']['avfp'] = "0";
+$config['proxy_default_values']['quality_reporting_collecto'] = "sip:voip-metrics@acceleratenetworks.sip.callpipe.com;transport=tls";
+$config['proxy_default_values']['quality_reporting_enabled'] = "1";
+$config['proxy_default_values']['quality_reporting_interval'] = "100";
+
+$config['auth_info_0']['username'] = $extension['extension'];
+$config['auth_info_0']['passwd'] = $extension['password'];
+$config['auth_info_0']['domain'] = $domain_name;
+$config['auth_info_0']['realm'] = $domain_name;
+$config['auth_info_0']['algorithm'] = "MD5";
+
+$proxy = $domain_name;
+if($is_mobile) {
+  $proxy = "flexisip.callpipe.com";
 }
 
-foreach($audio_codecs_disabled as $codec) {
-?>
-  <section name="audio_codec_<?php echo $codec_num++; ?>">
-    <entry name="mime" overwrite="true"><?php echo $codec; ?></entry>
-    <entry name="enabled" overwrite="true">0</entry>
-  </section>
-  <?php
+$config['proxy_0']['reg_proxy'] = "&lt;sip:".$proxy.";transport=tls&gt;";
+$config['proxy_0']['reg_route'] = "&lt;sip:".$proxy.";transport=tls&gt;";
+$config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" &lt;sips:".$extension['extension']."@".$domain_name.":5065&gt;";
+$config['proxy_0']['realm'] = $domain_name;
+if($is_mobile) {
+  $config['proxy_0']['reg_expires'] = "604800";
+} else {
+  $config['proxy_0']['reg_expires'] = "60";
 }
+$config['proxy_0']['reg_sendregister'] = "1";
+$config['proxy_0']['publish'] = "1";
+$config['proxy_0']['dial_escape_plus'] = "0";
+$config['proxy_0']['push_notification_allowed'] = "1";
 
-$codec_num = 0;
-foreach($video_codecs_enabled as $codec) {
-?>
-  <section name="video_codec_<?php echo $codec_num++; ?>">
-    <entry name="mime" overwrite="true"><?php echo $codec; ?></entry>
-    <!-- <entry name="rate" overwrite="true">90000</entry> TODO: this was set for VP8 and unset for H264 -->
-    <entry name="enabled" overwrite="true">1</entry>
-  </section>
-<?php } ?>
-  <section name="proxy_default_values">
-    <entry name="avpf" overwrite="true">0</entry>
-  </section>
-  <section name="auth_info_0">
-    <entry name="username" overwrite="true"><?php echo $extension['extension']; ?></entry>
-    <entry name="passwd" ><?php echo $extension['password']; ?></entry>
-    <entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
-    <entry name="domain" overwrite="true"><?php echo $domain_name; ?></entry>
-    <entry name="algorithm" overwrite="true">MD5</entry>
-  </section>
-  <section name="proxy_0">
-    <entry name="reg_proxy" overwrite="true"><?php echo "&lt;sip:".$domain_name.";transport=".$sip_transport."&gt;"; ?></entry>
-    <entry name="reg_identity" overwrite="true"><?php echo "\"".$extension['display_name']."\" &lt;sip:".$extension['extension']."@".$domain_name."&gt;"; ?></entry>
-    <entry name="reg_route" overwrite="true"><?php echo "&lt;sip:".$domain_name.";transport=".$sip_transport."&gt;"; ?></entry>
-    <entry name="realm" overwrite="true"><?php echo $domain_name; ?></entry>
-    <entry name="reg_expires" overwrite="true">3600</entry>
-    <entry name="reg_sendregister" overwrite="true">1</entry>
-    <entry name="publish" overwrite="true">1</entry>
-    <entry name="dial_escape_plus" overwrite="true">0</entry>
-  </section>
-<?php
+if(!$is_mobile) { // Linphone Desktop gets a codec list
+  $codec_num=0;
+  foreach($audio_codecs_enabled as $codec) {
+    $section = 'audio_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    $config[$section]['enabled'] = 1;
+  }
+
+  foreach($audio_codecs_disabled as $codec) {
+    $section = 'audio_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    $config[$section]['enabled'] = 0;
+  }
+
+  $codec_num = 0;
+  foreach($video_codecs_enabled as $codec) {
+    $section = 'video_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    // $config[$section]['rate'] = "90000"; // this was set for VP8
+    $config[$section]['enabled'] = 1;
+  }
+}
 
 $sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, c.contact_name_family, ";
 $sql .= "c.contact_type, c.contact_category, p.phone_label,";
@@ -145,11 +146,24 @@ $parameters['domain_uuid'] = $domain_uuid;
 $database = new database;
 $database_contacts = $database->select($sql, $parameters, 'all');
 $i = 0;
-foreach ($database_contacts as $contact) {?>
-  <section name="friend_<?php echo $i++; ?>">
-    <entry name="url"><?php echo '"'.$contact['contact_name_given']." ".$contact['contact_name_family']." - ".$contact['contact_organization']." (".$contact['phone_label'].')" sip:'.$contact['phone_number']."@".$domain_name; ?></entry>
-    <entry name="pol">accept</entry>
-    <entry name="subscribe"><?php if(strlen($contact['phone_number']) < 8) { echo "1"; } else { echo "0"; } ?></entry>
-  </section>
-<?php } ?>
-</config>
+foreach ($database_contacts as $contact) {
+  $section = "friend_".$i++;
+  $config[$section]['url'] = '"'.$contact['contact_name_given']." ".$contact['contact_name_family']." - ".$contact['contact_organization']." (".$contact['phone_label'].')" sip:'.$contact['phone_number']."@".$domain_name;
+  $config[$section]['pol'] = "accept";
+  if(strlen($contact['phone_number']) < 8) {
+    $config[$section]['subscribe'] = "1";
+  } else {
+    $config[$section]['subscribe'] = "0";
+  }
+}
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+echo "<config xmlns=\"http://www.linphone.org/xsds/lpconfig.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd\">\n";
+
+foreach($config as $section=>$values) {
+  echo "  <section name=\"".$section."\">\n";
+  foreach($values as $key=>$value) {
+    echo "    <entry name=\"".$key."\">".$value."</entry>\n";
+  }
+  echo "  </section>\n";
+}
+echo "</config>\n";
