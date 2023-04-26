@@ -50,8 +50,8 @@ $database = new database;
 $domain_name = $database->select($sql, $parameters, 'column');
 unset($parameters);
 
-$config['misc']['transient_provisioning'] = "0";
 $config['misc']['uuid'] = "317971da-65c4-419f-a0ca-69fe26523e2b";
+$config['misc']['transient_provisioning'] = "0";
 $config['misc']['version_check_url_root'] = "https://acceleratenetworks.sip.callpipe.com/app/linphone";
 // $config['misc']['contacts-vcard-list'] = ".." // old vcard download
 
