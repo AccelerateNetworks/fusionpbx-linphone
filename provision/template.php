@@ -61,7 +61,7 @@ $config['sip']['verify_server_cn'] = "0";
 $config['sip']['default_proxy'] = "0";
 $config['sip']['media_encryption'] = "srtp";
 
-$config['ui']['exit_on_close'] = "1";
+$config['ui']['exit_on_close'] = "0";
 $config['ui']['logs_enabled'] = "1";
 
 $config['proxy_default_values']['avfp'] = "0";
