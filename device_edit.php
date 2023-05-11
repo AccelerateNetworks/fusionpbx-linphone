@@ -73,13 +73,6 @@ echo "<br /><br />\n";
 ?>
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
     <tr>
-        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name</td>
-        <td width="70%" class="vtable" align="left">
-            <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
-            leave blank to autofill with device hostname
-        </td>
-    </tr>
-    <tr>
         <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Extension</td>
         <td width="70%" class="vtable" align="left">
             <select class="formfld" name="extension_uuid">
@@ -97,6 +90,13 @@ echo "<br /><br />\n";
                     echo "<option value=\"".$extension['extension_uuid']."\"".$selected.">".$extension['extension'].$name."</option>\n";
                 } ?>
             </select>
+        </td>
+    </tr>
+    <tr>
+        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name</td>
+        <td width="70%" class="vtable" align="left">
+            <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
+            leave blank to autofill with device hostname
         </td>
     </tr>
 </table>
