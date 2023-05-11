@@ -93,7 +93,7 @@ echo "<br /><br />\n";
         </td>
     </tr>
     <tr>
-        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name<br />optional</td>
+        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name<br /><small>optional</small></td>
         <td width="70%" class="vtable" align="left">
             <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
         </td>
