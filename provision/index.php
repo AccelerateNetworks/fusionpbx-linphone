@@ -1,5 +1,5 @@
 <?php
-if(strpos($_SERVER['HTTP_USER_AGENT'], "Linphone") !== false) {
+if(strpos($_SERVER['HTTP_USER_AGENT'], "Linphone") !== false || strpos($_SERVER['HTTP_USER_AGENT'], "ANMobile") !== false) {
 	include "template.php";
 	die();
 }
