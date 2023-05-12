@@ -35,13 +35,15 @@ if($extension['user_agent'] != $_SERVER['HTTP_USER_AGENT']) {
 // if the device name is blank, set it to the hostname from the user agent
 $useragent = str_split($_SERVER['HTTP_USER_AGENT']);
 if($extension['device_name'] == "" && count($useragent) > 1) {
-  $sql = "update linphone_devices set name = :hostname where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
-  $parameters['domain_uuid'] = $extension['domain_uuid'];
-  $parameters['device_uuid'] = $extension['device_uuid'];
-  $parameters['hostname'] = trim($useragent[1], '()');
-  $database = new database;
-  $domain_name = $database->execute($sql, $parameters);
-  unset($parameters);
+  if(preg_match(`/(?<product>[\w\- ]+)\/(?<version>[\w\.\+]+) \((?<hostname>[\w\'\+\.\-_ ]+)\) (?<platform>.*)/`, $_SERVER['HTTP_USER_AGENT'], $matches)) {
+    $sql = "update linphone_devices set name = :hostname where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
+    $parameters['domain_uuid'] = $extension['domain_uuid'];
+    $parameters['device_uuid'] = $extension['device_uuid'];
+    $parameters['hostname'] = $matches['hostname'];
+    $database = new database;
+    $domain_name = $database->execute($sql, $parameters);
+    unset($parameters);
+  }
 }
 
 $sql = "select domain_name from v_domains where domain_uuid = :domain_uuid";
