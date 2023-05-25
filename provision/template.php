@@ -54,7 +54,7 @@ unset($parameters);
 
 $config['misc']['uuid'] = "317971da-65c4-419f-a0ca-69fe26523e2b";
 $config['misc']['transient_provisioning'] = "0";
-$config['misc']['version_check_url_root'] = "https://acceleratenetworks.sip.callpipe.com/app/linphone";
+$config['misc']['version_check_url_root'] = "https://".$domain_name."/app/linphone";
 // $config['misc']['contacts-vcard-list'] = ".." // old vcard download
 
 
@@ -67,7 +67,7 @@ $config['ui']['exit_on_close'] = "0";
 $config['ui']['logs_enabled'] = "1";
 
 $config['proxy_default_values']['avfp'] = "0";
-$config['proxy_default_values']['quality_reporting_collecto'] = "sip:voip-metrics@acceleratenetworks.sip.callpipe.com;transport=tls";
+$config['proxy_default_values']['quality_reporting_collecto'] = "sip:voipmetrics@acceleratenetworks.sip.callpipe.com;transport=tls";
 $config['proxy_default_values']['quality_reporting_enabled'] = "1";
 $config['proxy_default_values']['quality_reporting_interval'] = "100";
 
@@ -119,6 +119,15 @@ if(!$is_mobile) { // Linphone Desktop gets a codec list
   }
 }
 
+$sql = "SELECT linphone_profile_settings.setting, linphone_profile_settings.value FROM linphone_profile_settings, linphone_profile_devices WHERE linphone_profile_devices.device_uuid = :device_uuid";
+$parameters['device_uuid'] = $extension['device_uuid'];
+$settings = $database->select($sql, $parameters, 'all');
+unset($parameters);
+foreach($settings as $setting) {
+  $key = explode(".", $setting['setting']);
+  $config[$key[0]][$key[1]] = $setting['value'];
+}
+
 $sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, c.contact_name_family, ";
 $sql .= "c.contact_type, c.contact_category, p.phone_label,";
 $sql .= "p.phone_number, p.phone_extension, p.phone_primary ";
@@ -126,24 +135,6 @@ $sql .= "from v_contacts as c, v_contact_phones as p ";
 $sql .= "where c.contact_uuid = p.contact_uuid ";
 $sql .= "and p.phone_type_voice = '1' ";
 $sql .= "and c.domain_uuid = :domain_uuid ";
-// if ($category == 'groups') {
-//   $sql .= "and c.contact_uuid in ( ";
-//   $sql .= "	select contact_uuid from v_contact_groups ";
-//   $sql .= "	where group_uuid in ( ";
-//   $sql .= "		select group_uuid from v_user_groups ";
-//   $sql .= "		where user_uuid = :device_user_uuid ";
-//   $sql .= "		and domain_uuid = :domain_uuid ";
-//   $sql .= "	)) ";
-//   $parameters['device_user_uuid'] = $device_user_uuid;
-// }
-// if ($category == 'users') {
-//   $sql .= "and c.contact_uuid in ( ";
-//   $sql .= "	select contact_uuid from v_contact_users ";
-//   $sql .= "	where user_uuid = :device_user_uuid ";
-//   $sql .= "	and domain_uuid = :domain_uuid ";
-//   $sql .= ") ";
-//   $parameters['device_user_uuid'] = $device_user_uuid;
-// }
 $parameters['domain_uuid'] = $domain_uuid;
 $database = new database;
 $database_contacts = $database->select($sql, $parameters, 'all');

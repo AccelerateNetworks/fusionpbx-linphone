@@ -91,7 +91,103 @@
 		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
 		$z++;
 
+		$y++;
+		$z=0;
+		$apps[$x]['db'][$y]['table']['name'] = "linphone_profiles";
+		$apps[$x]['db'][$y]['table']['parent'] = "";
+
+		$apps[$x]['db'][$y]['fields'][$z]['name']['text'] = 'profile_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(36)';
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '';
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(36)';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = 'foreign';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = 'v_domains';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '';
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "name";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
+		$z++;
+
+		$y++;
+		$z=0;
+		$apps[$x]['db'][$y]['table']['name'] = "linphone_profile_settings";
+		$apps[$x]['db'][$y]['table']['parent'] = "";
+
+		$apps[$x]['db'][$y]['fields'][$z]['name']['text'] = 'profile_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(36)';
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '';
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(36)';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = 'foreign';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = 'v_domains';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '';
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "setting";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "value";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
+		$z++;
+
+		$y++;
+		$z=0;
+		$apps[$x]['db'][$y]['table']['name'] = "linphone_profile_devices";
+		$apps[$x]['db'][$y]['table']['parent'] = "";
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "device_uuid";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "uuid";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "char(36)";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = "foreign";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = "linphone_devices";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = "device_uuid";
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = 'uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = 'text';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = 'char(36)';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = 'foreign';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = 'v_domains';
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = 'domain_uuid';
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '';
+		$z++;
+
+		$apps[$x]['db'][$y]['fields'][$z]['name'] = "profile";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "uuid";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "char(36)";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['type'] = "foreign";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['table'] = "linphone_profiles";
+		$apps[$x]['db'][$y]['fields'][$z]['key']['reference']['field'] = "profile_uuid";
+		$z++;
+
 		$y=0;
+		$z=0;
 		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_domain";
 		$apps[$x]['permissions'][$y]['groups'][] = "admin";
 		$apps[$x]['permissions'][$y]['groups'][] = "superadmin";
@@ -104,4 +200,3 @@
 		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_self";
 		$apps[$x]['permissions'][$y]['groups'][] = "user";
 		$y++;
-?>

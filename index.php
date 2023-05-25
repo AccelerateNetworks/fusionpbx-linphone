@@ -43,6 +43,7 @@ if(permission_exists('linphone_manage_all')) {
 if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
     echo button::create(['type'=>'button','label'=>"New",'icon'=>$_SESSION['theme']['button_icon_add'],'id'=>'btn_add','name'=>'btn_add','link'=>'device_edit.php']);
 }
+echo button::create(['type'=>'button','label'=>"profiles",'icon'=>'clone','link'=>'profile_list.php']);
 echo "	</div>\n";
 echo "	<div style='clear: both;'></div>\n";
 echo "</div>\n";

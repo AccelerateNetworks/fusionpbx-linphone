@@ -14,33 +14,66 @@ if(!(permission_exists('linphone_manage_domain') || permission_exists('linphone_
     exit;
 }
 
+$database = new database;
 if($_POST['extension_uuid']) { // add/update
     $sql = "update linphone_devices set extension_uuid = :extension_uuid, name = :name where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
     $parameters['domain_uuid'] = $domain_uuid;
     $parameters['extension_uuid'] = $_POST['extension_uuid'];
     $parameters['name'] = $_POST['name'];
 
+    $device_uuid = $_POST['device_uuid'];
     if(strlen($_POST['device_uuid']) > 0) {
-        $parameters['device_uuid'] = $_POST['device_uuid'];
+        $parameters['device_uuid'] = $device_uuid;
     } else {
+        $device_uuid = uuid();
         $sql = "insert into linphone_devices(device_uuid, provisioning_secret, name, domain_uuid, extension_uuid) VALUES (:device_uuid, :provisioning_secret, :name, :domain_uuid, :extension_uuid)";
-        $parameters['device_uuid'] = uuid();
+        $parameters['device_uuid'] = $device_uuid;
         $parameters['provisioning_secret'] = generate_password(20, 3); // generate a random 20 character alphanumeric string
     }
 
-    error_log("executing sql: ".$sql);
-    error_log("sql params: ".print_r($parameters, true));
-    $database = new database;
     $database->execute($sql, $parameters);
+    unset($parameters);
     
-    header('Location: device_edit.php?device_uuid='.$parameters['device_uuid'], false, 302);
+    $sql = "SELECT profile FROM linphone_profile_devices WHERE domain_uuid = :domain_uuid AND device_uuid = :device_uuid";
+    $parameters['domain_uuid'] = $domain_uuid;
+    $parameters['device_uuid'] = $device_uuid;
+    $current_profile_list = $database->select($sql, $parameters, 'all');
+    unset($parameters);
+
+    foreach($current_profile_list as $profile) {
+        $current_profiles[$profile['profile']] = true;
+    }
+
+    foreach($_POST['profiles'] as $profile) {
+        if(isset($current_profiles[$profile])) {
+            unset($current_profiles[$profile]);
+            continue;
+        }
+
+        $sql = "INSERT INTO linphone_profile_devices (device_uuid, domain_uuid, profile) VALUES (:device_uuid, :domain_uuid, :profile)";
+        $parameters['device_uuid'] = $device_uuid;
+        $parameters['domain_uuid'] = $domain_uuid;
+        $parameters['profile'] = $profile;
+        $database->execute($sql, $parameters);
+        unset($parameters);
+    }
+
+    foreach(array_keys($current_profiles) as $profile) {
+        $sql = "DELETE FROM linphone_profile_devices WHERE device_uuid = :device_uuid AND domain_uuid = :domain_uuid AND profile = :profile";
+        $parameters['device_uuid'] = $device_uuid;
+        $parameters['domain_uuid'] = $domain_uuid;
+        $parameters['profile'] = $profile;
+        $database->execute($sql, $parameters);
+        unset($parameters);
+    }
+
+    header('Location: device_edit.php?device_uuid='.$device_uuid, false, 302);
     die();
 }
 
 $sql = "select * from linphone_devices where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
 $parameters['domain_uuid'] = $domain_uuid;
 $parameters['device_uuid'] = $_REQUEST['device_uuid'];
-$database = new database;
 $device = $database->select($sql, $parameters, 'row');
 unset($parameters);
 
@@ -96,6 +129,42 @@ echo "<br /><br />\n";
         <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name<br /><small>optional</small></td>
         <td width="70%" class="vtable" align="left">
             <input class="formfld" type="text" name="name" value="<?php echo $device['name']; ?>" /><br />
+        </td>
+    </tr>
+    <tr>
+        <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Profiles</td>
+        <td width="70%" class="vtable" align="left">
+            <table class="vtable">
+            <?php
+            $sql = "SELECT * FROM linphone_profiles WHERE domain_uuid = :domain_uuid";
+            $parameters['domain_uuid'] = $domain_uuid;
+            $profiles = $database->select($sql, $parameters, 'all');
+
+            $sql = "SELECT profile FROM linphone_profile_devices WHERE domain_uuid = :domain_uuid AND device_uuid = :device_uuid";
+            $parameters['device_uuid'] = $device['device_uuid'];
+            $device_profiles_list = $database->select($sql, $parameters, 'all');
+            unset($parameters);
+
+            foreach($device_profiles_list as $profile) {
+                $device_profiles[$profile['profile']] = true;
+            }
+
+            foreach($profiles as $profile) {
+                $profile_uuid = $profile['profile_uuid'];
+
+                $checked = "";
+                if(isset($device_profiles[$profile_uuid])) {
+                    $checked = "checked ";
+                }
+
+                echo "<tr><td>";
+                echo "<label for='profile-".$profile_uuid."'>";
+                echo "<input type='checkbox' name='profiles[]' value='".$profile_uuid."' id='profile-".$profile_uuid."' ".$checked."/> ";
+                echo $profile['name'];
+                echo "</label></td></tr>";
+            }
+            ?>
+            </table>
         </td>
     </tr>
 </table>
