@@ -160,7 +160,7 @@ echo "<br /><br />\n";
                 echo "<tr><td>";
                 echo "<label for='profile-".$profile_uuid."'>";
                 echo "<input type='checkbox' name='profiles[]' value='".$profile_uuid."' id='profile-".$profile_uuid."' ".$checked."/> ";
-                echo $profile['name'];
+                echo htmlspecialchars($profile['name']);
                 echo "</label></td></tr>";
             }
             ?>

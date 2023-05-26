@@ -42,7 +42,7 @@ unset($parameters);
 foreach($profiles as $profile) {
 ?>
 <tr>
-    <td><a href="profile_edit.php?profile_uuid=<?php echo $profile['profile_uuid']; ?>"><?php echo $profile['name']; ?></a></td>
+    <td><a href="profile_edit.php?profile_uuid=<?php echo $profile['profile_uuid']; ?>"><?php echo htmlspecialchars($profile['name']); ?></a></td>
     <td class="middle button"><?php
         if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
             echo "<form method='post' action='profile_edit.php'>";

@@ -125,7 +125,7 @@ echo "<br /><br />\n";
     <tr>
         <td width="30%" class="vncellreq" valign="top" align="left" nowrap="nowrap">Name</td>
         <td width="70%" class="vtable" align="left">
-            <input class="formfld" class="vtable" type="text" name="profile_name" value="<?php echo $profile['name']; ?>" /><br />
+            <input class="formfld" class="vtable" type="text" name="profile_name" value="<?php echo htmlspecialchars($profile['name']); ?>" /><br />
         </td>
     </tr>
     <tr>
@@ -148,11 +148,11 @@ unset($parameters);
 foreach($settings as $setting) {
     $key = explode(".", $setting['setting']);
     echo "<tr>";
-    echo "<td class='vtable'>".$key[0]."</td>";
-    echo "<td class='vtable'>".$key[1]."</td>";
-    echo "<input type='hidden' name='setting[]' value='".$setting['setting']."' />";
-    echo "<td class='vtable'><input class='formfld' type='text' name='value[]' value='".$setting['value']."' /></td>";
-    echo "<td class='vtable'><input class='formfld' type='checkbox' name='delete[".$setting['setting']."]' /></td>";
+    echo "<td class='vtable'>".htmlspecialchars($key[0])."</td>";
+    echo "<td class='vtable'>".htmlspecialchars($key[1])."</td>";
+    echo "<input type='hidden' name='setting[]' value='".htmlspecialchars($setting['setting'])."' />";
+    echo "<td class='vtable'><input class='formfld' type='text' name='value[]' value='".htmlspecialchars($setting['value'])."' /></td>";
+    echo "<td class='vtable'><input class='formfld' type='checkbox' name='delete[".htmlspecialchars($setting['setting'])."]' /></td>";
     echo "</tr>";
 }
 ?>
