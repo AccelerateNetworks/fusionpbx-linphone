@@ -82,9 +82,9 @@ if($is_mobile) {
   $proxy = "flexisip.callpipe.com";
 }
 
-$config['proxy_0']['reg_proxy'] = "&lt;sip:".$proxy.";transport=tls&gt;";
-$config['proxy_0']['reg_route'] = "&lt;sip:".$proxy.";transport=tls&gt;";
-$config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" &lt;sips:".$extension['extension']."@".$domain_name.":5065&gt;";
+$config['proxy_0']['reg_proxy'] = "<sip:".$proxy.";transport=tls>";
+$config['proxy_0']['reg_route'] = "<sip:".$proxy.";transport=tls>";
+$config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" <sips:".$extension['extension']."@".$domain_name.":5065>";
 $config['proxy_0']['realm'] = $domain_name;
 if($is_mobile) {
   $config['proxy_0']['reg_expires'] = "604800";
@@ -128,6 +128,12 @@ foreach($settings as $setting) {
   $config[$key[0]][$key[1]] = $setting['value'];
 }
 
+// special case values
+if($config['proxy_0']['reg_identity_port']) {
+  $config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" <sips:".$extension['extension']."@".$domain_name.":".$config['proxy_0']['reg_identity_port'].">";
+  unset($config['proxy_0']['reg_identity_port']);
+}
+
 $sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, c.contact_name_family, ";
 $sql .= "c.contact_type, c.contact_category, p.phone_label,";
 $sql .= "p.phone_number, p.phone_extension, p.phone_primary ";
@@ -141,7 +147,7 @@ $database_contacts = $database->select($sql, $parameters, 'all');
 $i = 0;
 foreach ($database_contacts as $contact) {
   $section = "friend_".$i++;
-  $config[$section]['url'] = '"'.$contact['contact_name_given']." ".$contact['contact_name_family']." - ".$contact['contact_organization']." (".$contact['phone_label'].')" sip:'.$contact['phone_number']."@".$domain_name;
+  $config[$section]['url'] = '"'.$contact['contact_name_given']." ".$contact['contact_name_family']." - ".$contact['contact_organization']." (".$contact['phone_label'].')" <sip:'.$contact['phone_number']."@".$domain_name.">";
   $config[$section]['pol'] = "accept";
   if(strlen($contact['phone_number']) < 8) {
     $config[$section]['subscribe'] = "1";
@@ -149,14 +155,49 @@ foreach ($database_contacts as $contact) {
     $config[$section]['subscribe'] = "0";
   }
 }
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-echo "<config xmlns=\"http://www.linphone.org/xsds/lpconfig.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd\">\n";
+
+$xw = xmlwriter_open_memory();
+xmlwriter_set_indent($xw, 1);
+$res = xmlwriter_set_indent_string($xw, ' ');
+
+xmlwriter_start_document($xw, '1.0', 'UTF-8');
+
+xmlwriter_start_element($xw, 'config');
+
+xmlwriter_start_attribute($xw, 'xmlns');
+xmlwriter_text($xw, 'http://www.linphone.org/xsds/lpconfig.xsd');
+xmlwriter_end_attribute($xw);
+
+xmlwriter_start_attribute($xw, 'xmlns:xsi');
+xmlwriter_text($xw, 'http://www.w3.org/2001/XMLSchema-instance');
+xmlwriter_end_attribute($xw);
+
+xmlwriter_start_attribute($xw, 'xsi:schemaLocation');
+xmlwriter_text($xw, 'http://www.linphone.org/xsds/lpconfig.xsd lpconfig.xsd');
+xmlwriter_end_attribute($xw);
+
 
 foreach($config as $section=>$values) {
-  echo "  <section name=\"".$section."\">\n";
+  xmlwriter_start_element($xw, 'section');
+
+  xmlwriter_start_attribute($xw, 'name');
+  xmlwriter_text($xw, $section);
+  xmlwriter_end_attribute($xw);
+
   foreach($values as $key=>$value) {
-    echo "    <entry name=\"".$key."\">".$value."</entry>\n";
+    xmlwriter_start_element($xw, 'entry');
+
+    xmlwriter_start_attribute($xw, 'name');
+    xmlwriter_text($xw, $key);
+    xmlwriter_end_attribute($xw);
+
+    xmlwriter_text($xw, $value);
+
+    xmlwriter_end_element($xw);
   }
-  echo "  </section>\n";
+  xmlwriter_end_element($xw);
 }
-echo "</config>\n";
+
+xmlwriter_end_element($xw);
+
+echo xmlwriter_output_memory($xw);
