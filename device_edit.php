@@ -71,13 +71,13 @@ if($_POST['extension_uuid']) { // add/update
     die();
 }
 
-$sql = "select * from linphone_devices where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
+$sql = "SELECT * FROM linphone_devices WHERE domain_uuid = :domain_uuid AND device_uuid = :device_uuid";
 $parameters['domain_uuid'] = $domain_uuid;
 $parameters['device_uuid'] = $_REQUEST['device_uuid'];
 $device = $database->select($sql, $parameters, 'row');
 unset($parameters);
 
-$sql = "select extension, extension_uuid, effective_caller_id_name from v_extensions where domain_uuid = :domain_uuid";
+$sql = "SELECT extension, extension_uuid, effective_caller_id_name FROM v_extensions WHERE domain_uuid = :domain_uuid ORDER BY extension ASC";
 $parameters['domain_uuid'] = $domain_uuid;
 $database = new database;
 $extensions = $database->select($sql, $parameters, 'all');
