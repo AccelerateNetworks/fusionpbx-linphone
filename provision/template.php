@@ -78,10 +78,7 @@ $config['auth_info_0']['realm'] = $domain_name;
 $config['auth_info_0']['algorithm'] = "MD5";
 
 $proxy = $domain_name;
-if(isset($config['proxy_0']['proxy_domain'])) {
-  $proxy = $config['proxy_0']['proxy_domain'];
-  unset($config['proxy_0']['proxy_domain']);
-} elseif($is_mobile) {
+if($is_mobile) {
   $proxy = "flexisip.callpipe.com";
 }
 
@@ -135,6 +132,13 @@ foreach($settings as $setting) {
 if($config['proxy_0']['reg_identity_port']) {
   $config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" <sips:".$extension['extension']."@".$domain_name.":".$config['proxy_0']['reg_identity_port'].">";
   unset($config['proxy_0']['reg_identity_port']);
+}
+
+if($config['proxy_0']['proxy_domain']) {
+  $proxy = $config['proxy_0']['proxy_domain'];
+  unset($config['proxy_0']['proxy_domain']);
+  $config['proxy_0']['reg_proxy'] = "<sip:".$proxy.";transport=tls>";
+  $config['proxy_0']['reg_route'] = "<sip:".$proxy.";transport=tls>";
 }
 
 $sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, c.contact_name_family, ";
