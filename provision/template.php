@@ -78,7 +78,10 @@ $config['auth_info_0']['realm'] = $domain_name;
 $config['auth_info_0']['algorithm'] = "MD5";
 
 $proxy = $domain_name;
-if($is_mobile) {
+if(isset($config['proxy_0']['proxy_domain'])) {
+  $proxy = $config['proxy_0']['proxy_domain'];
+  unset($config['proxy_0']['proxy']);
+} elseif($is_mobile) {
   $proxy = "flexisip.callpipe.com";
 }
 
@@ -119,7 +122,7 @@ if(!$is_mobile) { // Linphone Desktop gets a codec list
   }
 }
 
-$sql = "SELECT linphone_profile_settings.setting, linphone_profile_settings.value FROM linphone_profile_settings, linphone_profile_devices WHERE linphone_profile_devices.device_uuid = :device_uuid";
+$sql = "SELECT linphone_profile_settings.setting, linphone_profile_settings.value FROM linphone_profile_settings, linphone_profile_devices WHERE linphone_profile_settings.profile_uuid = linphone_profile_devices.profile AND linphone_profile_devices.device_uuid = :device_uuid";
 $parameters['device_uuid'] = $extension['device_uuid'];
 $settings = $database->select($sql, $parameters, 'all');
 unset($parameters);
