@@ -80,7 +80,7 @@ $config['auth_info_0']['algorithm'] = "MD5";
 $proxy = $domain_name;
 if(isset($config['proxy_0']['proxy_domain'])) {
   $proxy = $config['proxy_0']['proxy_domain'];
-  unset($config['proxy_0']['proxy']);
+  unset($config['proxy_0']['proxy_domain']);
 } elseif($is_mobile) {
   $proxy = "flexisip.callpipe.com";
 }
