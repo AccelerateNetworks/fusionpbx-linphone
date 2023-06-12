@@ -114,7 +114,20 @@ echo "	<div class='actions'>\n";
 echo button::create(['type'=>'button','label'=>"back",'icon'=>$_SESSION['theme']['button_icon_back'],'id'=>'btn_back','style'=>'margin-right: 15px;','link'=>'profile_list.php']);
 echo button::create(['type'=>'submit','label'=>"save", 'icon'=>$_SESSION['theme']['button_icon_save'],'id'=>'btn_save','style'=>'margin-left: 15px;']);
 if(strlen($_GET['profile_uuid']) > 0) {
-    echo button::create(['type'=>'submit','label'=>"delete", 'icon'=>'trash','id'=>'btn_delete','name' => "action", 'value' => "delete"]);
+    echo modal::create([
+        'id'=>'modal-delete',
+        'type'=>'delete',
+        'actions'=>button::create([
+            'type'=>'submit',
+            'label'=>"delete",
+            'icon'=>'trash',
+            'style'=>'float: right; margin-left: 15px;',
+            'collapse'=>'never',
+            'name'=>'action',
+            'value'=>'delete',
+        ]
+    )]);
+    echo button::create(['type'=>'button','label'=>'Delete','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"modal_open('modal-delete','btn_delete');"]);
 }
 echo "  </div>";
 echo "	<div style='clear: both;'></div>\n";

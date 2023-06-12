@@ -14,6 +14,26 @@ if(!(permission_exists('linphone_manage_all') || permission_exists('linphone_man
     exit;
 }
 
+
+echo "<form method='post' action='profile_edit.php'>";
+echo modal::create([
+	'id'=>'modal-delete',
+	'type'=>'delete',
+	'actions'=>button::create([
+		'type'=>'submit',
+		'label'=>"delete",
+		'icon'=>'check',
+		'id'=>'btn_delete',
+		'style'=>'float: right; margin-left: 15px;',
+		'collapse'=>'never',
+		'name'=>'action',
+		'value'=>'delete',
+		'onclick'=>"modal_close();"
+	]
+)]);
+echo "<input type='hidden' name='profile_uuid' id='profile_uuid'/>";
+echo "</form>";
+
 //show the content
 echo "<div class='action_bar' id='action_bar'>\n";
 echo "	<div class='heading'><b>Linphone Profiles</b></div>\n";
@@ -48,7 +68,8 @@ foreach($profiles as $profile) {
             echo "<form method='post' action='profile_edit.php'>";
             echo "<input type='hidden' name='profile_uuid' value='".$profile['profile_uuid']."'>";
             echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'profile_edit.php?profile_uuid='.$profile['profile_uuid']]);
-            echo button::create(['type'=>'submit', 'icon'=>'trash','id'=>'btn_delete','name' => "action", 'value' => "delete"]);
+            // echo button::create(['type'=>'submit', 'icon'=>'trash','id'=>'btn_delete','name' => "action", 'value' => "delete"]);
+            echo button::create(['type'=>'button','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"document.querySelector('#profile_uuid').value = '".$profile['profile_uuid']."'; modal_open('modal-delete','btn_delete');"]);
             echo "</form>";
         }
     ?></td>
