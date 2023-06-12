@@ -68,7 +68,6 @@ foreach($profiles as $profile) {
             echo "<form method='post' action='profile_edit.php'>";
             echo "<input type='hidden' name='profile_uuid' value='".$profile['profile_uuid']."'>";
             echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'profile_edit.php?profile_uuid='.$profile['profile_uuid']]);
-            // echo button::create(['type'=>'submit', 'icon'=>'trash','id'=>'btn_delete','name' => "action", 'value' => "delete"]);
             echo button::create(['type'=>'button','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"document.querySelector('#profile_uuid').value = '".$profile['profile_uuid']."'; modal_open('modal-delete','btn_delete');"]);
             echo "</form>";
         }

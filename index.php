@@ -29,6 +29,25 @@ $database = new database;
 $devices = $database->select($sql, $parameters, 'all');
 unset($parameters);
 
+echo "<form method='post' action='device_edit.php'>";
+echo modal::create([
+	'id'=>'modal-delete',
+	'type'=>'delete',
+	'actions'=>button::create([
+		'type'=>'submit',
+		'label'=>"delete",
+		'icon'=>'check',
+		'id'=>'btn_delete',
+		'style'=>'float: right; margin-left: 15px;',
+		'collapse'=>'never',
+		'name'=>'action',
+		'value'=>'delete',
+		'onclick'=>"modal_close();"
+	]
+)]);
+echo "<input type='hidden' name='device_uuid' id='device_uuid'/>";
+echo "</form>";
+
 //show the content
 echo "<div class='action_bar' id='action_bar'>\n";
 echo "	<div class='heading'><b>Linphone (".count($devices).")</b></div>\n";
@@ -70,6 +89,7 @@ foreach($devices as $device) {
         echo button::create(['type'=>'button','icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
         if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
             echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'device_edit.php?device_uuid='.$device['device_uuid']]);
+            echo button::create(['type'=>'button','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"document.querySelector('#device_uuid').value = '".$device['device_uuid']."'; modal_open('modal-delete','btn_delete');"]);
         }
     ?></td>
 </tr>

@@ -15,6 +15,22 @@ if(!(permission_exists('linphone_manage_domain') || permission_exists('linphone_
 }
 
 $database = new database;
+if($_POST['action'] == "delete" && $_POST['device_uuid']) {
+    $parameters['domain_uuid'] = $domain_uuid;
+    $parameters['device_uuid'] = $_POST['device_uuid'];
+
+    $sql = "DELETE FROM linphone_profile_devices WHERE device_uuid = :device_uuid AND domain_uuid = :domain_uuid";
+    $database->execute($sql, $parameters);
+
+    $sql = "DELETE FROM linphone_devices WHERE device_uuid = :device_uuid AND domain_uuid = :domain_uuid";
+    $database->execute($sql, $parameters);
+
+    unset($parameters);
+
+    header("Location: /app/linphone/");
+    exit();
+}
+
 if($_POST['extension_uuid']) { // add/update
     $sql = "update linphone_devices set extension_uuid = :extension_uuid, name = :name where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
     $parameters['domain_uuid'] = $domain_uuid;
@@ -97,6 +113,20 @@ if($device) {
     $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret'];
     echo button::create(['type'=>'button','label'=>"Show Provisioning QR",'icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
     echo button::create(['type'=>'button','label'=>"Copy Provisioning URL",'icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
+    echo modal::create([
+        'id'=>'modal-delete',
+        'type'=>'delete',
+        'actions'=>button::create([
+            'type'=>'submit',
+            'label'=>"delete",
+            'icon'=>'trash',
+            'style'=>'float: right; margin-left: 15px;',
+            'collapse'=>'never',
+            'name'=>'action',
+            'value'=>'delete',
+        ]
+    )]);
+    echo button::create(['type'=>'button','label'=>'Delete','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"modal_open('modal-delete','btn_delete');"]);
 }
 echo "  </div>";
 echo "	<div style='clear: both;'></div>\n";
