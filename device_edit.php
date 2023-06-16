@@ -112,7 +112,7 @@ echo "	<div class='actions'>\n";
 echo button::create(['type'=>'button','label'=>"back",'icon'=>$_SESSION['theme']['button_icon_back'],'id'=>'btn_back','style'=>'margin-right: 15px;','link'=>'index.php']);
 echo button::create(['type'=>'submit','label'=>"save", 'icon'=>$_SESSION['theme']['button_icon_save'],'id'=>'btn_save','style'=>'margin-left: 15px;']);
 if($device) {
-    $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret'];
+    $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/index.php?token=".$device['provisioning_secret'];
     echo button::create(['type'=>'button','label'=>"Show Provisioning QR",'icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
     echo button::create(['type'=>'button','label'=>"Copy Provisioning URL",'icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
     echo modal::create([

@@ -84,7 +84,7 @@ foreach($devices as $device) {
     <td><?php echo htmlspecialchars($device['name']); ?></td>
     <td><?php echo htmlspecialchars($device['user_agent']); ?></td>
     <td class="middle button"><?php
-        $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/?token=".$device['provisioning_secret'];
+        $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/index.php?token=".$device['provisioning_secret'];
         echo button::create(['type'=>'button','icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
         echo button::create(['type'=>'button','icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
         if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
