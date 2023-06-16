@@ -74,13 +74,15 @@ if($_POST['extension_uuid']) { // add/update
         unset($parameters);
     }
 
-    foreach(array_keys($current_profiles) as $profile) {
-        $sql = "DELETE FROM linphone_profile_devices WHERE device_uuid = :device_uuid AND domain_uuid = :domain_uuid AND profile = :profile";
-        $parameters['device_uuid'] = $device_uuid;
-        $parameters['domain_uuid'] = $domain_uuid;
-        $parameters['profile'] = $profile;
-        $database->execute($sql, $parameters);
-        unset($parameters);
+    if($current_profiles) {
+        foreach(array_keys($current_profiles) as $profile) {
+            $sql = "DELETE FROM linphone_profile_devices WHERE device_uuid = :device_uuid AND domain_uuid = :domain_uuid AND profile = :profile";
+            $parameters['device_uuid'] = $device_uuid;
+            $parameters['domain_uuid'] = $domain_uuid;
+            $parameters['profile'] = $profile;
+            $database->execute($sql, $parameters);
+            unset($parameters);
+        }
     }
 
     header('Location: device_edit.php?device_uuid='.$device_uuid, false, 302);
