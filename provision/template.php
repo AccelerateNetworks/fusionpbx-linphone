@@ -55,8 +55,7 @@ unset($parameters);
 $config['misc']['uuid'] = "317971da-65c4-419f-a0ca-69fe26523e2b";
 $config['misc']['transient_provisioning'] = "0";
 $config['misc']['version_check_url_root'] = "https://".$domain_name."/app/linphone";
-// $config['misc']['contacts-vcard-list'] = ".." // old vcard download
-$config['misc']['config-uri'] = "https://".$domain_name."/app/linphone/provision/index.php?token=".$_GET['token']."&updated=1";
+$config['misc']['config-uri'] = "https://".$domain_name."/app/linphone/provision/index.php?token=".$_GET['token'];
 
 
 $config['sip']['verify_server_certs'] = "0";
