@@ -61,7 +61,7 @@ $config['misc']['config-uri'] = "https://".$domain_name."/app/linphone/provision
 $config['sip']['verify_server_certs'] = "0";
 $config['sip']['verify_server_cn'] = "0";
 $config['sip']['default_proxy'] = "0";
-$config['sip']['media_encryption'] = "srtp";
+$config['sip']['media_encryption'] = "none";
 
 $config['ui']['exit_on_close'] = "0";
 $config['ui']['logs_enabled'] = "1";
