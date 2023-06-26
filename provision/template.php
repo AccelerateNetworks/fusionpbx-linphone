@@ -27,7 +27,6 @@ if($extension['user_agent'] != $_SERVER['HTTP_USER_AGENT']) {
   $parameters['domain_uuid'] = $extension['domain_uuid'];
   $parameters['device_uuid'] = $extension['device_uuid'];
   $parameters['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-  $database = new database;
   $domain_name = $database->execute($sql, $parameters);
   unset($parameters);
 }
@@ -40,7 +39,6 @@ if($extension['device_name'] == "" && count($useragent) > 1) {
     $parameters['domain_uuid'] = $extension['domain_uuid'];
     $parameters['device_uuid'] = $extension['device_uuid'];
     $parameters['hostname'] = $matches['hostname'];
-    $database = new database;
     $domain_name = $database->execute($sql, $parameters);
     unset($parameters);
   }
@@ -48,7 +46,6 @@ if($extension['device_name'] == "" && count($useragent) > 1) {
 
 $sql = "select domain_name from v_domains where domain_uuid = :domain_uuid";
 $parameters['domain_uuid'] = $extension['domain_uuid'];
-$database = new database;
 $domain_name = $database->select($sql, $parameters, 'column');
 unset($parameters);
 
@@ -95,6 +92,9 @@ $config['proxy_0']['reg_sendregister'] = "1";
 $config['proxy_0']['publish'] = "1";
 $config['proxy_0']['dial_escape_plus'] = "0";
 $config['proxy_0']['push_notification_allowed'] = "1";
+
+$config['nat_policy_0']['protocols'] = "stun,ice";
+$config['nat_policy_0']['stun_server'] = "stun.l.google.com:19302";
 
 if(!$is_mobile) { // Linphone Desktop gets a codec list
   $codec_num=0;
@@ -149,7 +149,6 @@ $sql .= "where c.contact_uuid = p.contact_uuid ";
 $sql .= "and p.phone_type_voice = '1' ";
 $sql .= "and c.domain_uuid = :domain_uuid ";
 $parameters['domain_uuid'] = $domain_uuid;
-$database = new database;
 $database_contacts = $database->select($sql, $parameters, 'all');
 $i = 0;
 foreach ($database_contacts as $contact) {
