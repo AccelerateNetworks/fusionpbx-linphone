@@ -87,6 +87,7 @@ foreach($devices as $device) {
         $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/index.php?token=".$device['provisioning_secret'];
         echo button::create(['type'=>'button','icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
         echo button::create(['type'=>'button','icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
+        echo button::create(['type'=>'button', 'icon'=>'arrow-down', 'link'=>$provisioning_url,'target'=>'_blank']);
         if(permission_exists('linphone_manage_domain') || permission_exists('linphone_manage_all')) { // edit page doesn't currently support linphone_manage_self
             echo button::create(['type'=>'button','icon'=>'pen','id'=>'btn_toggle','name'=>'btn_edit', 'link' => 'device_edit.php?device_uuid='.$device['device_uuid']]);
             echo button::create(['type'=>'button','icon'=>$_SESSION['theme']['button_icon_delete'],'onclick'=>"document.querySelector('#device_uuid').value = '".$device['device_uuid']."'; modal_open('modal-delete','btn_delete');"]);

@@ -115,6 +115,7 @@ if($device) {
     $provisioning_url = "https://".$_SESSION['domain_name']."/app/linphone/provision/index.php?token=".$device['provisioning_secret'];
     echo button::create(['type'=>'button','label'=>"Show Provisioning QR",'icon'=>'qrcode','onclick'=>"show_qr(\"".$provisioning_url."\")"]);
     echo button::create(['type'=>'button','label'=>"Copy Provisioning URL",'icon'=>'clipboard', 'onclick'=>'copy("'.$provisioning_url.'")']);
+    echo button::create(['type'=>'button','label'=>'Open Provisioning','icon'=>'arrow-down','link'=>$provisioning_url,'target'=>'_blank']);
     echo modal::create([
         'id'=>'modal-delete',
         'type'=>'delete',
