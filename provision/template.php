@@ -59,13 +59,14 @@ $config['sip']['verify_server_certs'] = "0";
 $config['sip']['verify_server_cn'] = "0";
 $config['sip']['default_proxy'] = "0";
 $config['sip']['media_encryption'] = "none";
+$config['sip']['lime'] = "0";
 
 $config['ui']['exit_on_close'] = "0";
 $config['ui']['logs_enabled'] = "1";
 
 $config['proxy_default_values']['avfp'] = "0";
 $config['proxy_default_values']['quality_reporting_collecto'] = "sip:voipmetrics@acceleratenetworks.sip.callpipe.com;transport=tls";
-$config['proxy_default_values']['quality_reporting_enabled'] = "1";
+$config['proxy_default_values']['quality_reporting_enabled'] = "0";
 $config['proxy_default_values']['quality_reporting_interval'] = "100";
 
 $config['auth_info_0']['username'] = $extension['extension'];
@@ -95,6 +96,9 @@ $config['proxy_0']['push_notification_allowed'] = "1";
 
 $config['nat_policy_0']['protocols'] = "stun,ice";
 $config['nat_policy_0']['stun_server'] = "stun.l.google.com:19302";
+
+$config['nat_policy_default_values']['protocols'] = "stun,ice";
+$config['nat_policy_default_values']['stun_server'] = "stun.l.google.com:19302";
 
 if(!$is_mobile) { // Linphone Desktop gets a codec list
   $codec_num=0;
