@@ -60,6 +60,11 @@ $config['sip']['verify_server_cn'] = "0";
 $config['sip']['default_proxy'] = "0";
 $config['sip']['media_encryption'] = "none";
 $config['sip']['lime'] = "0";
+if($is_mobile) {
+  $config['sip']['use_ipv6'] = "1";
+} else {
+  $config['sip']['use_ipv6'] = "0";
+}
 
 $config['ui']['exit_on_close'] = "0";
 $config['ui']['logs_enabled'] = "1";
