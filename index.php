@@ -1,7 +1,6 @@
 <?php
 /*
-	GNU Public License
-	Version: GPL 3
+	Version: MPL 1.1
 */
 require_once "root.php";
 require_once "resources/require.php";
