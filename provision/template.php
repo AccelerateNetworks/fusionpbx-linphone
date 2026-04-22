@@ -7,8 +7,10 @@ $sip_transport = "tls";
 $audio_codecs_enabled = array("opus", "G722"); // Codec list will be pushed to Linphone Desktop clients
 $audio_codecs_disabled = array("speex", "PCMU", "PCMA", "GSM", "G729", "BV16", "L16"); // do we actually need to list these to disable them?
 $video_codecs_enabled = array("VP8", "H264"); // no disabled list in existing template
+$audio_codecs_enabled_mobile = array("opus"); // Codec list will be pushed to iOS and Android clients
+$audio_codecs_disabled_mobile = array("speex", "PCMU", "PCMA", "GSM", "G729", "BV16", "L16", "G722"); // do we actually need to list these to disable them?
 
-$is_mobile = strpos($_SERVER['HTTP_USER_AGENT'], "AN Mobile") !== false; // Detect AN Mobile user agent for slight config differences
+$is_mobile = strpos($_SERVER['HTTP_USER_AGENT'], "AN Mobile") !== false || strpos($_SERVER['HTTP_USER_AGENT'], "Accelerate") !== false || strpos($_SERVER['HTTP_USER_AGENT'], "LinphoneiOS") !== false; // Detect AN Mobile or Accelerate user agents for slight config differences
 
 $sql = "select v_extensions.*, linphone_devices.user_agent, linphone_devices.device_uuid, linphone_devices.name as device_name from v_extensions, linphone_devices where linphone_devices.provisioning_secret = :token and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid";
 $parameters['token'] = $_GET['token'];
@@ -61,7 +63,7 @@ $config['sip']['default_proxy'] = "0";
 $config['sip']['media_encryption'] = "none";
 $config['sip']['lime'] = "0";
 if($is_mobile) {
-  $config['sip']['use_ipv6'] = "1";
+  $config['sip']['use_ipv6'] = "0";
 } else {
   $config['sip']['use_ipv6'] = "0";
 }
@@ -82,12 +84,12 @@ $config['auth_info_0']['algorithm'] = "MD5";
 
 $proxy = $domain_name;
 if($is_mobile) {
-  $proxy = "flexisip.callpipe.com";
+  $proxy = "flexisip.prod.callpipe.com";
 }
 
 $config['proxy_0']['reg_proxy'] = "<sip:".$proxy.";transport=tls>";
 $config['proxy_0']['reg_route'] = "<sip:".$proxy.";transport=tls>";
-$config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" <sips:".$extension['extension']."@".$domain_name.":5065>";
+$config['proxy_0']['reg_identity'] = "\"".$extension['effective_caller_id_name']."\" <sips:".$extension['extension']."@".$domain_name.">";
 $config['proxy_0']['realm'] = $domain_name;
 if($is_mobile) {
   $config['proxy_0']['reg_expires'] = "604800";
@@ -99,7 +101,7 @@ $config['proxy_0']['publish'] = "1";
 $config['proxy_0']['dial_escape_plus'] = "0";
 $config['proxy_0']['push_notification_allowed'] = "1";
 
-$config['nat_policy_0']['protocols'] = "stun,ice";
+$config['nat_policy_0']['protocols'] = "stun";
 $config['nat_policy_0']['stun_server'] = "stun.l.google.com:19302";
 
 $config['nat_policy_default_values']['protocols'] = "stun,ice";
@@ -114,6 +116,29 @@ if(!$is_mobile) { // Linphone Desktop gets a codec list
   }
 
   foreach($audio_codecs_disabled as $codec) {
+    $section = 'audio_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    $config[$section]['enabled'] = 0;
+  }
+
+  $codec_num = 0;
+  foreach($video_codecs_enabled as $codec) {
+    $section = 'video_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    // $config[$section]['rate'] = "90000"; // this was set for VP8
+    $config[$section]['enabled'] = 1;
+  }
+}
+
+if($is_mobile) { // Linphone Desktop gets a codec list
+  $codec_num=0;
+  foreach($audio_codecs_enabled_mobile as $codec) {
+    $section = 'audio_codec_'.$codec_num++;
+    $config[$section]['mime'] = $codec;
+    $config[$section]['enabled'] = 1;
+  }
+
+  foreach($audio_codecs_disabled_mobile as $codec) {
     $section = 'audio_codec_'.$codec_num++;
     $config[$section]['mime'] = $codec;
     $config[$section]['enabled'] = 0;
