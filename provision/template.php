@@ -12,7 +12,7 @@ $audio_codecs_disabled_mobile = array("speex", "PCMU", "PCMA", "GSM", "G729", "B
 
 $is_mobile = strpos($_SERVER['HTTP_USER_AGENT'], "AN Mobile") !== false || strpos($_SERVER['HTTP_USER_AGENT'], "Accelerate") !== false || strpos($_SERVER['HTTP_USER_AGENT'], "LinphoneiOS") !== false; // Detect AN Mobile or Accelerate user agents for slight config differences
 
-$sql = "select v_extensions.*, linphone_devices.user_agent, linphone_devices.device_uuid, linphone_devices.name as device_name from v_extensions, linphone_devices where linphone_devices.provisioning_secret = :token and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid";
+$sql = "select v_extensions.*, linphone_devices.user_agent, linphone_devices.device_uuid, linphone_devices.name as device_name, linphone_devices.upload_secret from v_extensions, linphone_devices where linphone_devices.provisioning_secret = :token and v_extensions.domain_uuid = linphone_devices.domain_uuid and v_extensions.extension_uuid = linphone_devices.extension_uuid";
 $parameters['token'] = $_GET['token'];
 $database = new database;
 $extension = $database->select($sql, $parameters, 'row');
@@ -55,6 +55,7 @@ $config['misc']['uuid'] = "317971da-65c4-419f-a0ca-69fe26523e2b";
 $config['misc']['transient_provisioning'] = "0";
 $config['misc']['version_check_url_root'] = "https://".$domain_name."/app/linphone";
 $config['misc']['config-uri'] = "https://".$domain_name."/app/linphone/provision/index.php?token=".$_GET['token'];
+$config['misc']['file_transfer_server_url'] = "https://".$domain_name."/app/webtexting/upload-hook.php?token=".$extension['upload_secret'];
 
 
 $config['sip']['verify_server_certs'] = "0";
@@ -75,6 +76,7 @@ $config['proxy_default_values']['avfp'] = "0";
 $config['proxy_default_values']['quality_reporting_collecto'] = "sip:voipmetrics@acceleratenetworks.sip.callpipe.com;transport=tls";
 $config['proxy_default_values']['quality_reporting_enabled'] = "0";
 $config['proxy_default_values']['quality_reporting_interval'] = "100";
+$config['proxy_default_values']['cpim_in_basic_chat_rooms_enabled'] = "1";
 
 $config['auth_info_0']['username'] = $extension['extension'];
 $config['auth_info_0']['passwd'] = $extension['password'];
@@ -100,6 +102,7 @@ $config['proxy_0']['reg_sendregister'] = "1";
 $config['proxy_0']['publish'] = "1";
 $config['proxy_0']['dial_escape_plus'] = "0";
 $config['proxy_0']['push_notification_allowed'] = "1";
+$config['proxy_0']['cpim_in_basic_chat_rooms_enabled'] = "1";
 
 $config['nat_policy_0']['protocols'] = "stun";
 $config['nat_policy_0']['stun_server'] = "stun.l.google.com:19302";
