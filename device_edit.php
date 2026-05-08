@@ -31,22 +31,45 @@ if($_POST['action'] == "delete" && $_POST['device_uuid']) {
 }
 
 if($_POST['extension_uuid']) { // add/update
-    $sql = "update linphone_devices set extension_uuid = :extension_uuid, name = :name where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
     $parameters['domain_uuid'] = $domain_uuid;
     $parameters['extension_uuid'] = $_POST['extension_uuid'];
     $parameters['name'] = $_POST['name'];
 
     $device_uuid = $_POST['device_uuid'];
     if(strlen($_POST['device_uuid']) > 0) {
+        // update existing device
         $parameters['device_uuid'] = $device_uuid;
+        $sql = "update linphone_devices set extension_uuid = :extension_uuid, name = :name where domain_uuid = :domain_uuid and device_uuid = :device_uuid";
+        $database->execute($sql, $parameters);
     } else {
+        // insert new device — retry on upload_secret unique-constraint collision
         $device_uuid = uuid();
-        $sql = "insert into linphone_devices(device_uuid, provisioning_secret, name, domain_uuid, extension_uuid) VALUES (:device_uuid, :provisioning_secret, :name, :domain_uuid, :extension_uuid)";
         $parameters['device_uuid'] = $device_uuid;
         $parameters['provisioning_secret'] = generate_password(20, 3); // generate a random 20 character alphanumeric string
-    }
+        $sql = "insert into linphone_devices(device_uuid, provisioning_secret, upload_secret, name, domain_uuid, extension_uuid) VALUES (:device_uuid, :provisioning_secret, :upload_secret, :name, :domain_uuid, :extension_uuid)";
 
-    $database->execute($sql, $parameters);
+        // upload_secret has UNIQUE + format CHECK '^[a-f0-9]{32}$'.
+        // bin2hex(random_bytes(16)) gives 32 lowercase hex chars; collision probability ~2^-128 per attempt.
+        // The retry loop is defensive against the (astronomically unlikely) collision.
+        $max_retries = 5;
+        for ($attempt = 0; $attempt < $max_retries; $attempt++) {
+            $parameters['upload_secret'] = bin2hex(random_bytes(16));
+            try {
+                $database->execute($sql, $parameters);
+                break;
+            } catch (PDOException $e) {
+                // SQLSTATE 23505 = unique_violation. Only retry if the conflict is on upload_secret;
+                // any other error (different unique constraint, generic DB error) re-raises immediately.
+                if ($e->getCode() === '23505' && strpos($e->getMessage(), 'upload_secret') !== false) {
+                    continue;
+                }
+                throw $e;
+            }
+        }
+        if ($attempt === $max_retries) {
+            throw new RuntimeException("Failed to generate unique upload_secret for new linphone_device after $max_retries attempts");
+        }
+    }
     unset($parameters);
     
     $sql = "SELECT profile FROM linphone_profile_devices WHERE domain_uuid = :domain_uuid AND device_uuid = :device_uuid";
