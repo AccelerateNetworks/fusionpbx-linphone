@@ -91,6 +91,13 @@
 		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
 		$z++;
 
+		$apps[$x]['db'][$y]['fields'][$z]['name']['text'] = 'upload_secret';
+		$apps[$x]['db'][$y]['fields'][$z]['type']['pgsql'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['sqlite'] = "text";
+		$apps[$x]['db'][$y]['fields'][$z]['type']['mysql'] = "longtext";
+		$apps[$x]['db'][$y]['fields'][$z]['description'] = '32-char lowercase hex (16 random bytes); per-device auth for the RCS HTTP file-transfer upload endpoint. NOT NULL / UNIQUE / format CHECK constraints not declarable in the fusionpbx schema dsl; applied by the migration block at the end of this file.';
+		$z++;
+
 		$y++;
 		$z=0;
 		$apps[$x]['db'][$y]['table']['name'] = "linphone_profiles";
@@ -200,3 +207,75 @@
 		$apps[$x]['permissions'][$y]['name'] = "linphone_manage_self";
 		$apps[$x]['permissions'][$y]['groups'][] = "user";
 		$y++;
+
+	//linphone_devices.upload_secret column constraints (phase-2 messaging migration).
+	//not declarable in fusionpbx schema dsl; applied here.
+	//idempotent; single transaction; gated per-phase.
+	//pgsql-specific (pg_constraint catalog, regex operator in CHECK, gen_random_bytes).
+		$notnull_applied = $database->select(
+			"SELECT 1 FROM information_schema.columns
+			 WHERE table_name = 'linphone_devices'
+			   AND column_name = 'upload_secret'
+			   AND is_nullable = 'NO'",
+			[], 'column'
+		);
+		$unique_applied = $database->select(
+			"SELECT 1 FROM pg_constraint WHERE conname = 'linphone_devices_upload_secret_unique'",
+			[], 'column'
+		);
+		$format_applied = $database->select(
+			"SELECT 1 FROM pg_constraint WHERE conname = 'linphone_devices_upload_secret_format'",
+			[], 'column'
+		);
+
+		if (!$notnull_applied || !$unique_applied || !$format_applied) {
+			echo "linphone: applying upload_secret schema migration (one-time post-install)...<br/>";
+			try {
+				$database->execute("BEGIN");
+
+				// Phase 1: column add + populate + NOT NULL
+				// Gated on NOT NULL absence (covers: column missing OR column nullable).
+				// pgcrypto needed only for gen_random_bytes in the UPDATE; co-gated.
+				if (!$notnull_applied) {
+					$database->execute("CREATE EXTENSION IF NOT EXISTS pgcrypto");
+					$database->execute("ALTER TABLE linphone_devices ADD COLUMN IF NOT EXISTS upload_secret TEXT");
+					$database->execute("UPDATE linphone_devices SET upload_secret = encode(gen_random_bytes(16), 'hex') WHERE upload_secret IS NULL");
+					$database->execute("ALTER TABLE linphone_devices ALTER COLUMN upload_secret SET NOT NULL");
+				}
+
+				// Phase 2: UNIQUE constraint
+				if (!$unique_applied) {
+					$database->execute("ALTER TABLE linphone_devices ADD CONSTRAINT linphone_devices_upload_secret_unique UNIQUE (upload_secret)");
+				}
+
+				// Phase 3: format CHECK constraint
+				if (!$format_applied) {
+					$database->execute("ALTER TABLE linphone_devices ADD CONSTRAINT linphone_devices_upload_secret_format CHECK (upload_secret ~ '^[a-f0-9]{32}\$')");
+				}
+
+				$database->execute("COMMIT");
+				echo "linphone: upload_secret schema migration applied.<br/>";
+			} catch (Throwable $e) {
+				$database->execute("ROLLBACK");
+				echo "linphone: upload_secret schema migration FAILED: " . htmlspecialchars($e->getMessage()) . "<br/>";
+				echo "linphone: apply manually inside a single transaction: <code>BEGIN; CREATE EXTENSION IF NOT EXISTS pgcrypto; ALTER TABLE linphone_devices ADD COLUMN IF NOT EXISTS upload_secret TEXT; UPDATE linphone_devices SET upload_secret = encode(gen_random_bytes(16), 'hex') WHERE upload_secret IS NULL; ALTER TABLE linphone_devices ALTER COLUMN upload_secret SET NOT NULL; ALTER TABLE linphone_devices ADD CONSTRAINT linphone_devices_upload_secret_unique UNIQUE (upload_secret); ALTER TABLE linphone_devices ADD CONSTRAINT linphone_devices_upload_secret_format CHECK (upload_secret ~ '^[a-f0-9]{32}\$'); COMMIT;</code><br/>";
+			}
+		}
+
+	//linphone_upload_log audit table (phase-2 messaging migration).
+	//consumed by upload-hook.php as audit + rate-limit source-of-truth.
+	//pgsql-specific (inet, timestamptz). idempotent via IF NOT EXISTS.
+		$database->execute("CREATE TABLE IF NOT EXISTS linphone_upload_log (
+			log_uuid        uuid PRIMARY KEY,
+			extension_uuid  uuid NOT NULL,
+			domain_uuid     uuid NOT NULL,
+			device_uuid     uuid NOT NULL,
+			source_ip       inet,
+			filename        text,
+			content_type    text,
+			size_bytes      bigint,
+			http_status     smallint NOT NULL,
+			created_at      timestamptz NOT NULL DEFAULT NOW()
+		)");
+		$database->execute("CREATE INDEX IF NOT EXISTS linphone_upload_log_euuid_at ON linphone_upload_log (extension_uuid, created_at DESC)");
+		$database->execute("CREATE INDEX IF NOT EXISTS linphone_upload_log_dvuuid_at ON linphone_upload_log (device_uuid, created_at DESC)");
