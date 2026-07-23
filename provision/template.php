@@ -56,6 +56,11 @@ $linphone_config['misc']['transient_provisioning'] = "0";
 $linphone_config['misc']['version_check_url_root'] = "https://".$domain_name."/app/linphone";
 $linphone_config['misc']['config-uri'] = "https://".$domain_name."/app/linphone/provision/index.php?token=".$_GET['token'];
 $linphone_config['misc']['file_transfer_server_url'] = "https://".$domain_name."/app/webtexting/upload-hook.php?token=".$extension['upload_secret'];
+// Company directory: delivered as a VCard4 friend list (see provision/vcard.php),
+// not inline [friend_N] sections. Inline friends were loaded twice per boot
+// (config parse + provisioning re-apply, transient_provisioning=0) and doubled
+// every contact (issue #39); the VCard4 sync clears + re-imports, so it can't.
+$linphone_config['misc']['contacts-vcard-list'] = "https://".$domain_name."/app/linphone/provision/vcard.php?token=".$_GET['token'];
 
 
 $linphone_config['sip']['verify_server_certs'] = "0";
@@ -176,27 +181,6 @@ if($linphone_config['proxy_0']['proxy_domain']) {
   unset($linphone_config['proxy_0']['proxy_domain']);
   $linphone_config['proxy_0']['reg_proxy'] = "<sip:".$proxy.";transport=tls>";
   $linphone_config['proxy_0']['reg_route'] = "<sip:".$proxy.";transport=tls>";
-}
-
-$sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, c.contact_name_family, ";
-$sql .= "c.contact_type, c.contact_category, p.phone_label,";
-$sql .= "p.phone_number, p.phone_extension, p.phone_primary ";
-$sql .= "from v_contacts as c, v_contact_phones as p ";
-$sql .= "where c.contact_uuid = p.contact_uuid ";
-$sql .= "and p.phone_type_voice = '1' ";
-$sql .= "and c.domain_uuid = :domain_uuid ";
-$parameters['domain_uuid'] = $domain_uuid;
-$database_contacts = $database->select($sql, $parameters, 'all');
-$i = 0;
-foreach ($database_contacts as $contact) {
-  $section = "friend_".$i++;
-  $linphone_config[$section]['url'] = '"'.$contact['contact_name_given']." ".$contact['contact_name_family']." - ".$contact['contact_organization']." (".$contact['phone_label'].')" <sip:'.$contact['phone_number']."@".$domain_name.">";
-  $linphone_config[$section]['pol'] = "accept";
-  if(strlen($contact['phone_number']) < 8) {
-    $linphone_config[$section]['subscribe'] = "1";
-  } else {
-    $linphone_config[$section]['subscribe'] = "0";
-  }
 }
 
 $xw = xmlwriter_open_memory();
