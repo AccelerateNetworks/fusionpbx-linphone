@@ -104,10 +104,15 @@ foreach ($contacts as $uuid => $contact) {
     if ($number === '') { continue; }
 
     if (is_sip_endpoint($number)) {
-      // Internal extension on this domain: a real SIP endpoint. IMPP:sip: makes
-      // it dialable as SIP and presence-capable, and is unambiguous (no dial-plan
-      // normalization risk).
-      echo "IMPP:sip:" . vcard_escape($number) . "@" . vcard_escape($domain_name) . "\r\n";
+      // A real SIP endpoint. IMPP:sip: makes it dialable as SIP and
+      // presence-capable, and is unambiguous (no dial-plan normalization risk).
+      // A bare extension gets this domain appended; a value that already carries
+      // its own user@domain (an off-domain SIP address) is emitted as-is.
+      $sip = preg_replace('/^sips?:/i', '', $number);   // drop any scheme; we re-add sip:
+      if (strpos($sip, '@') === false) {
+        $sip .= '@' . $domain_name;                     // bare extension on this domain
+      }
+      echo "IMPP:sip:" . vcard_escape($sip) . "\r\n";
     } else {
       // External / PSTN number: keep it a phone number. liblinphone resolves TEL
       // to a dialable URI at call time against the *active* account's dial plan,
