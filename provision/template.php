@@ -61,6 +61,10 @@ $linphone_config['misc']['file_transfer_server_url'] = "https://".$domain_name."
 // (config parse + provisioning re-apply, transient_provisioning=0) and doubled
 // every contact (issue #39); the VCard4 sync clears + re-imports, so it can't.
 $linphone_config['misc']['contacts-vcard-list'] = "https://".$domain_name."/app/linphone/provision/vcard.php?token=".$_GET['token'];
+// Blank the inherited public-RLS default so directory-extension presence uses
+// per-friend SUBSCRIBEs to this domain, not an aggregated SUBSCRIBE to
+// rls@sip.linphone.org (rejected by the tenant proxy -> no presence).
+$linphone_config['sip']['rls_uri'] = '';
 
 
 $linphone_config['sip']['verify_server_certs'] = "0";
