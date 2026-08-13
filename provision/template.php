@@ -66,6 +66,20 @@ $linphone_config['misc']['contacts-vcard-list'] = "https://".$domain_name."/app/
 // rls@sip.linphone.org (rejected by the tenant proxy -> no presence).
 $linphone_config['sip']['rls_uri'] = '';
 
+// One-time migration for devices provisioned BEFORE the VCard4 switch: they
+// persisted inline [friend_N] sections (transient_provisioning=0) that this
+// payload can no longer delete, only overwrite. Blank each friend_N url so
+// liblinphone skips it at load (empty url -> no friend; read_friends_from_rc
+// scans friend_0.. until the first missing section), clearing the pre-VCard4
+// directory duplicates on the device's next provisioning fetch. The ceiling must
+// exceed the largest directory any device was ever provisioned with (count of
+// voice phone rows, not contacts). Retire this loop once the app-side section
+// purge has shipped and the fleet has cycled.
+$friend_cleanup_max = 256;
+for ($i = 0; $i < $friend_cleanup_max; $i++) {
+  $linphone_config["friend_$i"]['url'] = '';
+}
+
 
 $linphone_config['sip']['verify_server_certs'] = "0";
 $linphone_config['sip']['verify_server_cn'] = "0";

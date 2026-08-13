@@ -41,10 +41,7 @@ $domain_name = $database->select($sql, array('domain_uuid' => $domain_uuid), 'co
 unset($sql);
 
 // Directory contacts for this domain only (the per-subdomain filter).
-// NOTE: template.php binds a bare, undefined $domain_uuid for this same query (a
-// latent bug — there is no session in the provision context to populate it); we
-// correctly scope by the authenticated device's domain. ORDER BY groups a
-// contact's phones together and keeps UIDs stable across syncs.
+// ORDER BY groups a contact's phones together and keeps UIDs stable across syncs.
 $sql = "select c.contact_uuid, c.contact_organization, c.contact_name_given, ";
 $sql .= "c.contact_name_family, p.phone_label, p.phone_number ";
 $sql .= "from v_contacts as c, v_contact_phones as p ";
